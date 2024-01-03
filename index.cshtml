@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Pond Upload</title>
+    <link href="~/filepond/filepond.min.css" rel="stylesheet" />
+    <link href="~/filepond/filepond-plugin-image-preview.min.css" rel="stylesheet" />
+    <style>
+        .filepond--panel-root {
+            background-color: rgba(217, 216, 214, 0.18);
+            border-radius: 9px;
+            border: 1px dashed #000;
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+   
+        .filepond--root .filepond--drop-label {
+            min-height: 8.75em;
+        }
+   
+        .filepond--drop-label.filepond--drop-label label {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 18px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #2d2926;
+            font-family: Tablet-l;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <form name="upload" method="post" enctype="multipart/form-data">
+            <input type="file"
+                   class="filepond"
+                   name="filepond"
+                   multiple
+                   data-max-file-size="2MB"
+                   data-max-files="3"
+                   id="upload_file" />
+        </form>
+    </div>
+     @* FileBond *@
+ <script src="~/filepond/jquery.min.js"></script>
+ <script src="~/filepond/filepond-plugin-file-encode.min.js"></script>
+ <script src="~/filepond/filepond-plugin-file-validate-size.min.js"></script>
+ <script src="~/filepond/filepond-plugin-image-exif-orientation.min.js"></script>
+ <script src="~/filepond/filepond-plugin-image-preview.min.js"></script>
+ <script src="~/filepond/filepond.min.js"></script>
+ <script>
+     FilePond.registerPlugin(FilePondPluginFileEncode, FilePondPluginFileValidateSize, FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
+    const Pond =  FilePond.create(document.querySelector('.filepond'), {
+         labelIdle: `upload files
+                 <span style="text-transform: none;color: #828283;font-weight: 100;font-size: 16px;">You can Upload multiple files with Maximum upload size is 2MB, You can upload .PNG, .JPG, .DOC.</span>
+                 <i style="display: flex;font-size: 2rem;">
+                   <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+                     <path fill="none" d="M0 0h24v24H0z"></path>
+                     <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"></path>
+                   </svg>
+                 </i>
+                 `
+    });
+     FilePond.setOptions({
+         maxFiles: 3,
+         required: true,
+         server: {
+             timeOut: 7000,
+             process: {
+                 url: '@Url.Action("Upload", "ContactUs")',
+                 method: 'POST',
+             },
+             revert: (uniqueFileId, load, error) => {
+                 const formData = new FormData();
+                 formData.append('uniqueFileId', uniqueFileId);
+                 const request = new XMLHttpRequest();
+                 request.open('DELETE', '@Url.Action("Delete", "ContactUs")');
+                 request.send(formData);
+                 request.onload = function () {
+                     if (request.status >= 200 && request.status < 300) {
+                         load();
+                     } else {
+                         error('Error reverting the file.');
+                     }
+                 };
+             }
+         }
+     });
+ </script>
+</body>
+
+</html>
